@@ -42,7 +42,7 @@ impl<T> List<T> {
                 self.tail = Some(new_node.clone());
             }
             Some(old_head) => {
-                (*new_node).borrow_mut().next = Some(old_head);
+                new_node.borrow_mut().next = Some(old_head);
             }
         }
         self.head = Some(new_node);
@@ -60,7 +60,7 @@ impl<T> List<T> {
                 return None;
             }
             Some(head) => {
-                match (*head).borrow_mut().next.take() {
+                match head.borrow_mut().next.take() {
                     None => {
                         self.tail = None;
                         self.head = None;
@@ -81,7 +81,7 @@ impl<T> List<T> {
                 self.head = Some(new_node.clone());
             }
             Some(old_tail) => {
-                (*old_tail).borrow_mut().next = Some(new_node.clone());
+                old_tail.borrow_mut().next = Some(new_node.clone());
             }
         }
         self.tail = Some(new_node);
@@ -98,9 +98,9 @@ mod tests {
         list.push_front(1);
         list.push_front(2);
         list.push_front(3);
-        assert_eq!(list.pop_front().map(|node| (*node).borrow().elem), Some(3));
-        assert_eq!(list.pop_front().map(|node| (*node).borrow().elem), Some(2));
-        assert_eq!(list.pop_front().map(|node| (*node).borrow().elem), Some(1));
+        assert_eq!(list.pop_front().map(|node| (node).borrow().elem), Some(3));
+        assert_eq!(list.pop_front().map(|node| (node).borrow().elem), Some(2));
+        assert_eq!(list.pop_front().map(|node| (node).borrow().elem), Some(1));
 
         assert_eq!(list.pop_front().is_none(), true);
     }
