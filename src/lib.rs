@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-
 #[allow(dead_code)]
+
 type Link<T> = Option<Rc<RefCell<Node<T>>>>;
 
 #[derive(Debug)]
@@ -111,5 +111,8 @@ mod tests {
         list.push_back(1);
         list.push_back(2);
         list.push_back(3);
+        assert_eq!(list.pop_front().map(|node| (node).borrow().elem), Some(1));
+        assert_eq!(list.pop_front().map(|node| (node).borrow().elem), Some(2));
+        assert_eq!(list.pop_front().map(|node| (node).borrow().elem), Some(3));
     }
 }
