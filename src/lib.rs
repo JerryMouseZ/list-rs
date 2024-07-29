@@ -1,9 +1,20 @@
 use std::fmt;
 // write a list in Rust
 #[allow(dead_code)]
+#[derive(Debug)]
 pub enum List<T> {
     Cons(T, Box<List<T>>),
     Nil,
+}
+
+impl<T: PartialEq> PartialEq for List<T> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (List::Cons(lval, lnext), List::Cons(rval, rnext)) => lval == rval && lnext.eq(rnext),
+            (List::Nil, List::Nil) => true,
+            _ => false,
+        }
+    }
 }
 
 impl<T: PartialEq + fmt::Debug> List<T> {
@@ -16,41 +27,46 @@ impl<T: PartialEq + fmt::Debug> List<T> {
     }
 
     pub fn delete(self, value: &T) -> Self {
-        match self {
-            List::Cons(val, next) => {
-                if val == *value {
-                    *next
-                } else {
-                    List::Cons(val, Box::new(next.delete(value)))
-                }
-            },
-            List::Nil => {
-                List::Nil
+        if let List::Cons(elem, next) = self {
+            if elem == *value {
+                return *next;
+            } else {
+                return List::Cons(elem, Box::new(next.delete(value)));
             }
         }
+        List::Nil
     }
 
-    pub fn find(&self, value: &T) -> &Self {
-        let mut node = self;
-        while let List::Cons(val, next) = node {
+    pub fn find(&self, value: &T) -> Option<&T> {
+        if let List::Cons(val, next) = self {
             if *val == *value {
-                return &node;
+                return Some(val);
             }
-            node = next;
+            return next.find(value);
         }
-        &List::Nil
+        None
+    }
+
+    pub fn update(self, old: &T, new: T) -> Self {
+        if let List::Cons(val, next) = self {
+            if val == *old {
+                return List::Cons(new, next);
+            } else {
+                return List::Cons(val, Box::new(next.update(old, new)));
+            }
+        }
+        List::Nil
     }
 
     pub fn print(&self) {
-        let mut node = self;
-        while let List::Cons(val, next) = node {
+        if let List::Cons(val, next) = self {
             print!("{:?}, ", val);
-            node = next;
+            next.print();
+        } else {
+            println!();
         }
-        println!();
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -59,20 +75,14 @@ mod tests {
     #[test]
     fn test_new() {
         let list: List<i32> = List::new();
-        match list {
-            List::Nil => assert!(true),
-            _ => assert!(false, "New list should be Nil"),
-        }
+        assert_eq!(list, List::Nil);
     }
 
     #[test]
     fn test_insert() {
         let mut list = List::new();
         list = list.insert(1);
-        match list {
-            List::Cons(val, _) => assert_eq!(val, 1),
-            _ => assert!(false, "List should not be Nil after insertion"),
-        }
+        assert_eq!(list, List::Cons(1, Box::new(List::Nil)));
     }
 
     #[test]
@@ -80,10 +90,7 @@ mod tests {
         let mut list = List::new();
         list = list.insert(1);
         list = list.delete(&1);
-        match list {
-            List::Nil => assert!(true),
-            _ => assert!(false, "List should be Nil after deletion"),
-        }
+        assert_eq!(list, List::Nil);
     }
 
     #[test]
@@ -91,10 +98,14 @@ mod tests {
         let mut list = List::new();
         list = list.insert(1);
         let found = list.find(&1);
-        match found {
-            List::Cons(val, _) => assert_eq!(*val, 1),
-            _ => assert!(false, "Should find the inserted value"),
-        }
+        assert_eq!(found, Some(&1));
+    }
+
+    #[test]
+    fn test_update() {
+        let mut list = List::new();
+        list = list.insert(1);
+        list = list.update(&1, 2);
+        assert_eq!(list, List::Cons(2, Box::new(List::Nil)));
     }
 }
-
